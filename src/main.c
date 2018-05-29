@@ -37,6 +37,7 @@ int main(void) {
   uled_state = 0;
   selected_at_cmd = 0;
   should_refresh_display = 1;
+  should_transceive_cmd = 0;
   uint32_t i;
   // Reset the 'receive' buffer.
   for (i = 0; i < MAX_RX_LEN; ++i) {
@@ -245,6 +246,7 @@ int main(void) {
   NVIC_EnableIRQ(TIM16_IRQn);
 
   // Initialize the USART peripheral in async mode.
+  // (Default baud rate is 115200, but I slowed this ESP8266 down)
   init_uart(USART1, 9600);
 
   // Turn the ESP8266 module off, to start.
@@ -257,10 +259,56 @@ int main(void) {
   redraw_trx_state(28, "(Idle)\0");
 
   while (1) {
+    // Transmit an 'AT' command and receive the response,
+    // if necessary.
+    if (should_transceive_cmd) {
+      should_transceive_cmd = 0;
+      redraw_trx_state(28, "(Idle)\0");
+      oled_draw_rect(11, 24, 81, 38, 0, 0);
+      // Enable the USART transmit/receive pins.
+      USART1->CR1 |=  (USART_CR1_TE |
+                       USART_CR1_RE);
+      while (!(USART1->ISR & USART_ISR_TEACK)) {};
+      while (!(USART1->ISR & USART_ISR_REACK)) {};
+      // Transmit.
+      tx_string(USART1, at_commands[selected_at_cmd]);
+      // Receive. (Goes into a global buffer)
+      //rx_str(USART1, 10000);
+      uint8_t cx = 12;
+      uint8_t cy = 25;
+      char rxb = (char)rx_byte(USART1, 100000);
+      while (rxb != '\0') {
+        if (cy < 60) {
+          // Process newlines, but display space is limited,
+          // so don't print empty lines or extra spaces.
+          if (rxb == '\r') {}
+          else if (rxb == '\n' && cx > 12) {
+            cx = 12;
+            cy += 9;
+          }
+          else if ((rxb == ' ' || rxb == '\n') && cx <= 12) {}
+          else {
+            oled_draw_letter_c(cx, cy, rxb, 6, 'S');
+            cx += 6;
+            if (cx > 86) {
+              cx = 12;
+              cy += 9;
+            }
+          }
+        }
+        rxb = (char)rx_byte(USART1, 100000);
+      }
+      should_refresh_display = 1;
+      //redraw_rx();
+      // Disable the USART transmit/receive pins.
+      USART1->CR1 &= ~(USART_CR1_TE |
+                       USART_CR1_RE);
+    }
+
     // Communicate the framebuffer to the OLED screen.
     if (should_refresh_display) {
-      sspi_stream_framebuffer();
       should_refresh_display = 0;
+      sspi_stream_framebuffer();
     }
 
     // Set the onboard LED if the global variable is set.

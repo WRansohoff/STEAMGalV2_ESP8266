@@ -63,36 +63,8 @@ inline void EXTI9_line_interrupt(void) {
   // Transmit the selected 'AT' command,
   // and then print its response.
   if (selected_at_cmd < NUM_AT_COMMANDS) {
-    redraw_trx_state(28, "(Idle)\0");
-    oled_draw_rect(11, 24, 81, 38, 0, 0);
-    // Enable the USART transmit/receive pins.
-    USART1->CR1 |=  (USART_CR1_TE |
-                     USART_CR1_RE);
-    while (!(USART1->ISR & USART_ISR_TEACK)) {};
-    while (!(USART1->ISR & USART_ISR_REACK)) {};
-    // Transmit.
-    tx_string(USART1, at_commands[selected_at_cmd]);
-    // Receive. (Goes into a global buffer)
-    //rx_str(USART1, 10000);
-    uint8_t cx = 12;
-    uint8_t cy = 25;
-    char rxb = (char)rx_byte(USART1, 100000);
-    while (rxb != '\0') {
-      if (cy < 60) {
-        oled_draw_letter_c(cx, cy, rxb, 6, 'S');
-        cx += 6;
-        if (cx > 86) {
-          cx = 12;
-          cy += 9;
-        }
-      }
-      rxb = (char)rx_byte(USART1, 100000);
-    }
-    should_refresh_display = 1;
-    //redraw_rx();
-    // Disable the USART transmit/receive pins.
-    USART1->CR1 &= ~(USART_CR1_TE |
-                     USART_CR1_RE);
+    // (...later, in the main loop. This is an interrupt handler.)
+    should_transceive_cmd = 1;
   }
 }
 

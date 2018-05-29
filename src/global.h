@@ -32,6 +32,7 @@ extern void pulse_out_pin(volatile void* gpiox_odr,
 // Global variables and defines.
 volatile uint8_t  uled_state;
 volatile uint8_t  should_refresh_display;
+volatile uint8_t  should_transceive_cmd;
 volatile  int16_t selected_at_cmd;
 volatile uint32_t core_clock_hz;
 #define MAX_RX_LEN      (16)
