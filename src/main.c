@@ -86,12 +86,15 @@ int main(void) {
                       GPIO_MODER_MODER2 |
                       GPIO_MODER_MODER3);
   GPIOA->MODER   |=  ((1 << GPIO_MODER_MODER1_Pos) |
-                      (2 << GPIO_MODER_MODER2_Pos));
+                      (2 << GPIO_MODER_MODER2_Pos) |
+                      (2 << GPIO_MODER_MODER3_Pos));
   GPIOA->PUPDR   &= ~(GPIO_PUPDR_PUPDR1 |
                       GPIO_PUPDR_PUPDR2 |
                       GPIO_PUPDR_PUPDR3);
-  GPIOA->PUPDR   |=  (1 << GPIO_PUPDR_PUPDR1_Pos |
-                      1 << GPIO_PUPDR_PUPDR2_Pos);
+  GPIOA->PUPDR   |=  ((1 << GPIO_PUPDR_PUPDR1_Pos) |
+                      (1 << GPIO_PUPDR_PUPDR2_Pos) |
+                      (1 << GPIO_PUPDR_PUPDR3_Pos));
+  GPIOA->OSPEEDR |=  ((3 << GPIO_OSPEEDR_OSPEEDR3_Pos));
 
   // Setup GPIO pins A6, A7, A8, A9, B0, and B1 as inputs
   // with pullups, low-speed.
@@ -242,8 +245,7 @@ int main(void) {
   NVIC_EnableIRQ(TIM16_IRQn);
 
   // Initialize the USART peripheral in async mode.
-  // I think the default baud rate for ESP-01 modules is 9600.
-  init_uart(USART1, 115200);
+  init_uart(USART1, 9600);
 
   // Turn the ESP8266 module off, to start.
   //GPIOA->ODR &= ~(1 << PA_ESP_CHPD);

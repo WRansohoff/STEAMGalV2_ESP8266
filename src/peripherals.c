@@ -87,8 +87,10 @@ void init_uart(USART_TypeDef *USARTx,
   uint16_t br = core_clock_hz / baud_rate;
   USARTx->BRR  =  (br);
   // Enable both transmit and receive lines.
-  USARTx->CR1 |=  (USART_CR1_TE |
-                   USART_CR1_RE);
+  // (Actually, it seems best to avoid doing this until
+  //  you actually need to transceive.)
+  //USARTx->CR1 |=  (USART_CR1_TE |
+  //                 USART_CR1_RE);
   // Enable the peripheral.
   USARTx->CR1 |=  (USART_CR1_UE);
 }

@@ -39,11 +39,14 @@ char rx_buf[MAX_RX_LEN];
 
 // List of AT commands which can be issued.
 #define NUM_AT_COMMANDS (3)
-static const char at_commands[NUM_AT_COMMANDS][16] = {
+static const char at_commands[NUM_AT_COMMANDS][32] = {
   "AT\r\n\0",
   "AT+RST\r\n\0",
   "AT+GMR\r\n\0"
 };
+// (Currently-unused commands)
+//  "AT+CIOBAUD=9600\r\n\0",
+//  "AT+CIOBAUD=115200\r\n\0"
 
 // SSD1331 OLED information (96x64 pixels)
 // OLED colors.
