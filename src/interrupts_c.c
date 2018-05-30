@@ -102,7 +102,7 @@ inline void EXTI15_line_interrupt(void) {
   // (Unused)
 }
 
-#ifdef VVC_F0
+#if defined(VVC_F0) || defined(VVC_L0)
 // STM32F0xx EXTI lines.
 /*
  * EXTI0_1: Handle interrupt lines 0 and 1.
@@ -240,13 +240,5 @@ void TIM2_IRQ_handler(void) {
   if (TIM2->SR & TIM_SR_UIF) {
     TIM2->SR &= ~(TIM_SR_UIF);
     // (TIM2 timer interrupt code)
-  }
-}
-
-void TIM16_IRQ_handler(void) {
-  // Handle a timer 'update' interrupt event
-  if (TIM16->SR & TIM_SR_UIF) {
-    TIM16->SR &= ~(TIM_SR_UIF);
-    // (TIM16 timer interrupt handler code)
   }
 }

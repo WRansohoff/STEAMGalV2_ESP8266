@@ -28,7 +28,7 @@ void EXTI13_line_interrupt(void);
 void EXTI14_line_interrupt(void);
 void EXTI15_line_interrupt(void);
 
-#ifdef VVC_F0
+#if defined(VVC_F0) || defined(VVC_L0)
 // STM32F0xx EXTI lines.
 // EXTI handler for interrupt lines 0-1.
 void EXTI0_1_IRQ_handler(void);
@@ -56,6 +56,5 @@ void EXTI5_9_IRQ_handler(void);
 
 // Handlers common to all supported lines of chip.
 void TIM2_IRQ_handler(void);
-void TIM16_IRQ_handler(void);
 
 #endif

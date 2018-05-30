@@ -19,6 +19,15 @@
 #define PA_ESP_CHPD (1)
 #define PA_CS       (15)
 #define PA_RST      (12)
+// Global pin definitions.
+#define PA_LED      (11)
+
+// Peripheral definitions.
+#if defined(VVC_F0) || defined(VVC_F3)
+  #define VVC_UARTx     (USART1)
+#elif VVC_L0
+  #define VVC_UARTx     (USART2)
+#endif
 
 // Assembly methods.
 extern void delay_cycles(unsigned int d);
