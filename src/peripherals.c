@@ -140,23 +140,47 @@ uint8_t rx_byte(USART_TypeDef *USARTx, uint32_t timeout) {
  * Maximum string size is specified in 'src/global.h'
  */
 void rx_str(USART_TypeDef *USARTx, uint32_t timeout_cycles) {
-  uint32_t t_iter;
-  uint8_t buf_pos = 0;
+  uint32_t t_iter = 0;
+  uint32_t buf_pos = 0;
+  uint8_t r_val = 0;
+  uint8_t r_pg = 0;
+  // Receive bytes until the timeout is reached.
   for (t_iter = 0; t_iter < timeout_cycles; ++t_iter) {
     if (USARTx->ISR & USART_ISR_RXNE) {
-      if (buf_pos >= MAX_RX_LEN) {
-        // (Maximum recevie length reached; truncate.)
-        rx_buf[buf_pos] = '\0';
-        return;
+      if (buf_pos >= RX_LINE_LEN-1) {
+        if (r_pg < MAX_RX_PAGE) {
+          // (Maximum line length.)
+          rx_buf[r_pg][RX_LINE_LEN-1] = '\0';
+          ++r_pg;
+          buf_pos = 0;
+        }
       }
-      // Read the byte, reset the timeout.
-      rx_buf[buf_pos] = (USARTx->RDR & 0xFF);
-      ++buf_pos;
+      // Whether or not the buffer will be filled, the RDR
+      // register needs to be read to reset the RXNE flag.
+      r_val = USARTx->RDR & 0xFF;
+      if (r_pg < MAX_RX_PAGE) {
+        // Store the byte, reset the timeout.
+        // If the byte is a newline character, act differently.
+        if (r_val == '\r' ||
+            r_val == '\0' ||
+            (r_val == ' ' && buf_pos == 0)) {}
+        else if (r_val == '\n') {
+          if (buf_pos != 0) {
+            rx_buf[r_pg][buf_pos] = '\0';
+            ++r_pg;
+            buf_pos = 0;
+          }
+        }
+        else {
+          rx_buf[r_pg][buf_pos] = r_val;
+          ++buf_pos;
+        }
+      }
       t_iter = 0;
     }
   }
-  // (Timeout)
-  if (buf_pos == 0) {
-    snprintf(rx_buf, 15, "%s", "Timeout\0");
+  // (Timeout reached.)
+  if (buf_pos == 0 && r_pg == 0) {
+    snprintf((char*)rx_buf, 15, "%s", "Timeout\0");
   }
 }

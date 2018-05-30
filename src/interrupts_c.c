@@ -23,6 +23,11 @@ inline void EXTI0_line_interrupt(void) {
 
 inline void EXTI1_line_interrupt(void) {
   // 'Right' button.
+  rx_page += 1;
+  if (rx_page >= MAX_RX_PAGE-3) {
+    rx_page = 0;
+  }
+  redraw_rx();
 }
 
 inline void EXTI2_line_interrupt(void) {
@@ -43,6 +48,11 @@ inline void EXTI5_line_interrupt(void) {
 
 inline void EXTI6_line_interrupt(void) {
   // 'Left' button.
+  rx_page -= 1;
+  if (rx_page < 0) {
+    rx_page = MAX_RX_PAGE-4;
+  }
+  redraw_rx();
 }
 
 inline void EXTI7_line_interrupt(void) {

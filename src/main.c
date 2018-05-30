@@ -35,13 +35,16 @@ int main(void) {
 
   // Define starting values for global variables.
   uled_state = 0;
+  rx_page = 0;
   selected_at_cmd = 0;
   should_refresh_display = 1;
   should_transceive_cmd = 0;
-  uint32_t i;
+  uint32_t i, j;
   // Reset the 'receive' buffer.
-  for (i = 0; i < MAX_RX_LEN; ++i) {
-    rx_buf[i] = '\0';
+  for (i = 0; i < MAX_RX_PAGE; ++i) {
+    for (j = 0; j < RX_LINE_LEN; ++j) {
+      rx_buf[i][j] = '\0';
+    }
   }
   // Reset the framebuffer to a test pattern.
   uint8_t row = 0;
@@ -263,8 +266,15 @@ int main(void) {
     // if necessary.
     if (should_transceive_cmd) {
       should_transceive_cmd = 0;
-      redraw_trx_state(28, "(Idle)\0");
+      // Prepare for transmission.
+      redraw_trx_state(8, "Chatting\0");
       oled_draw_rect(11, 24, 81, 38, 0, 0);
+      // Empty the receive buffer.
+      for (i = 0; i < MAX_RX_PAGE; ++i) {
+        for (j = 0; j < RX_LINE_LEN; ++j) {
+          rx_buf[i][j] = '\0';
+        }
+      }
       // Enable the USART transmit/receive pins.
       USART1->CR1 |=  (USART_CR1_TE |
                        USART_CR1_RE);
@@ -273,36 +283,14 @@ int main(void) {
       // Transmit.
       tx_string(USART1, at_commands[selected_at_cmd]);
       // Receive. (Goes into a global buffer)
-      //rx_str(USART1, 10000);
-      uint8_t cx = 12;
-      uint8_t cy = 25;
-      char rxb = (char)rx_byte(USART1, 100000);
-      while (rxb != '\0') {
-        if (cy < 60) {
-          // Process newlines, but display space is limited,
-          // so don't print empty lines or extra spaces.
-          if (rxb == '\r') {}
-          else if (rxb == '\n' && cx > 12) {
-            cx = 12;
-            cy += 9;
-          }
-          else if ((rxb == ' ' || rxb == '\n') && cx <= 12) {}
-          else {
-            oled_draw_letter_c(cx, cy, rxb, 6, 'S');
-            cx += 6;
-            if (cx > 86) {
-              cx = 12;
-              cy += 9;
-            }
-          }
-        }
-        rxb = (char)rx_byte(USART1, 100000);
-      }
-      should_refresh_display = 1;
-      //redraw_rx();
+      rx_str(USART1, 100000);
       // Disable the USART transmit/receive pins.
       USART1->CR1 &= ~(USART_CR1_TE |
                        USART_CR1_RE);
+      // Draw the received message.
+      redraw_trx_state(24, "(Idle)\0");
+      redraw_rx();
+      should_refresh_display = 1;
     }
 
     // Communicate the framebuffer to the OLED screen.

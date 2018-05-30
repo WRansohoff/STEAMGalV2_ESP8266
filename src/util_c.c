@@ -619,11 +619,16 @@ void oled_draw_text(int x, int y, char* cc, uint8_t color, char size) {
   int i = 0;
   int offset = 0;
   while (cc[i] != '\0') {
-    oled_draw_letter_c(x + offset, y, cc[i], color, size);
     if (size == 'S') {
+      if (x < (OLED_MAX_X - 6)) {
+        oled_draw_letter_c(x + offset, y, cc[i], color, size);
+      }
       offset += 6;
     }
     else if (size == 'L') {
+      if (x < (OLED_MAX_X - 12)) {
+        oled_draw_letter_c(x + offset, y, cc[i], color, size);
+      }
       offset += 12;
     }
     ++i;
@@ -663,6 +668,14 @@ void draw_esp_text_outlines(void) {
   oled_draw_rect(90, 14, 1, 2, 0, 8);
   oled_draw_rect(89, 16, 3, 3, 0, 8);
   oled_draw_rect(88, 19, 5, 3, 0, 8);
+  // ('Left' caret)
+  oled_draw_h_line(3, 30, 2, 8);
+  oled_draw_rect(5, 29, 2, 3, 0, 8);
+  oled_draw_rect(7, 28, 2, 5, 0, 8);
+  // ('Right' caret)
+  oled_draw_h_line(7, 54, 2, 8);
+  oled_draw_rect(5, 53, 2, 3, 0, 8);
+  oled_draw_rect(3, 52, 2, 5, 0, 8);
   // 'Transmit/Receive' indicators.
   oled_draw_letter_c(3, 14, 'T', 7, 'S');
   oled_draw_letter_c(3, 38, 'R', 6, 'S');
@@ -687,7 +700,14 @@ void redraw_trx_state(int x, char* state) {
 
 void redraw_rx(void) {
   oled_draw_rect(11, 24, 81, 38, 0, 0);
-  rx_buf[MAX_RX_LEN-1] = '\0';
-  oled_draw_text(12, 25, &rx_buf[0], 6, 'S');
+  uint8_t cx = 12;
+  uint8_t cy = 25;
+  uint32_t bi = 0;
+  for (bi = rx_page; bi < (rx_page+4); ++bi) {
+    if (bi > MAX_RX_PAGE) { break; }
+    // Draw the current line.
+    oled_draw_text(cx, cy, (char*)rx_buf[bi], 6, 'S');
+    cy += 9;
+  }
   should_refresh_display = 1;
 }

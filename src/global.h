@@ -33,23 +33,32 @@ extern void pulse_out_pin(volatile void* gpiox_odr,
 volatile uint8_t  uled_state;
 volatile uint8_t  should_refresh_display;
 volatile uint8_t  should_transceive_cmd;
+volatile  int8_t  rx_page;
 volatile  int16_t selected_at_cmd;
 volatile uint32_t core_clock_hz;
-#define MAX_RX_LEN      (16)
-char rx_buf[MAX_RX_LEN];
+//#define MAX_RX_LEN      (128)
+//volatile char     rx_buf[MAX_RX_LEN];
+#define RX_LINE_LEN     (14)
+#define MAX_RX_PAGE     (16)
+volatile char     rx_buf[MAX_RX_PAGE][RX_LINE_LEN];
 
 // List of AT commands which can be issued.
 #define NUM_AT_COMMANDS (3)
-static const char at_commands[NUM_AT_COMMANDS][32] = {
+#define MAX_AT_LEN      (16)
+static const char at_commands[NUM_AT_COMMANDS][MAX_AT_LEN] = {
   "AT\r\n\0",
   "AT+RST\r\n\0",
-  "AT+GMR\r\n\0"
+  "AT+GMR\r\n\0",
 };
 // (Currently-unused commands)
-//  "AT+CIOBAUD=9600\r\n\0",
+//  "AT+CWMODE_DEF=1\r\n\0"
+//  "AT+CIOBAUD=9600\r\n\0"
 //  "AT+CIOBAUD=115200\r\n\0"
+//  "AT+CWLAP\r\n\0"
 
 // SSD1331 OLED information (96x64 pixels)
+#define OLED_MAX_X  (95)
+#define OLED_MAX_Y  (63)
 // OLED colors.
 #define OLED_BLK    (0x0000)
 #define OLED_LGRN   (0x8628)
